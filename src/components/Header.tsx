@@ -1,5 +1,5 @@
 import React from 'react';
-import { Terminal, Shield, Plus, Sparkles, BookOpen, ExternalLink, Menu, X, Share2 } from 'lucide-react';
+import { Terminal, Shield, Plus, Sparkles, BookOpen, ExternalLink, Menu, X, Share2, Download } from 'lucide-react';
 
 interface HeaderProps {
   onOpenBuilder: () => void;
@@ -7,6 +7,7 @@ interface HeaderProps {
   onOpenGuide: () => void;
   onOpenHelpline: () => void;
   onOpenShare: () => void;
+  onOpenInstall: () => void;
   onNavigateSection: (sectionId: string) => void;
 }
 
@@ -16,6 +17,7 @@ export const Header: React.FC<HeaderProps> = ({
   onOpenGuide,
   onOpenHelpline,
   onOpenShare,
+  onOpenInstall,
   onNavigateSection,
 }) => {
   const [mobileMenuOpen, setMobileMenuOpen] = React.useState(false);
@@ -89,8 +91,17 @@ export const Header: React.FC<HeaderProps> = ({
         {/* Zone 3: 1 Primary Action */}
         <div className="flex items-center gap-2 sm:gap-3 shrink-0">
           <button
+            onClick={onOpenInstall}
+            className="hidden sm:flex items-center gap-1.5 px-3 py-1.5 text-xs font-bold text-slate-950 bg-emerald-400 hover:bg-emerald-300 rounded-md transition-colors whitespace-nowrap shrink-0 cursor-pointer shadow-sm"
+            title="Install on Mobile as App"
+          >
+            <Download className="w-3.5 h-3.5" />
+            <span>Install App</span>
+          </button>
+
+          <button
             onClick={onOpenShare}
-            className="hidden sm:flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold text-cyan-300 bg-cyan-950/60 hover:bg-cyan-900/60 border border-cyan-500/40 rounded-md transition-colors whitespace-nowrap shrink-0 cursor-pointer"
+            className="hidden lg:flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold text-cyan-300 bg-cyan-950/60 hover:bg-cyan-900/60 border border-cyan-500/40 rounded-md transition-colors whitespace-nowrap shrink-0 cursor-pointer"
             title="Share Website Link"
           >
             <Share2 className="w-3.5 h-3.5" />
@@ -99,9 +110,9 @@ export const Header: React.FC<HeaderProps> = ({
 
           <button
             onClick={onOpenBuilder}
-            className="px-3.5 py-1.5 text-xs font-semibold text-black bg-emerald-400 hover:bg-emerald-300 rounded-md shadow-sm transition-colors whitespace-nowrap shrink-0 flex items-center gap-1.5 cursor-pointer"
+            className="px-3.5 py-1.5 text-xs font-semibold text-white bg-slate-800 hover:bg-slate-700 border border-slate-700 rounded-md shadow-sm transition-colors whitespace-nowrap shrink-0 flex items-center gap-1.5 cursor-pointer"
           >
-            <Shield className="w-3.5 h-3.5" />
+            <Shield className="w-3.5 h-3.5 text-emerald-400" />
             <span>Auto Generator</span>
           </button>
 
@@ -119,6 +130,13 @@ export const Header: React.FC<HeaderProps> = ({
       {/* Mobile Drawer */}
       {mobileMenuOpen && (
         <div className="md:hidden border-t border-slate-800 bg-[#090d16] px-4 py-3 space-y-2">
+          <button 
+            onClick={() => { onOpenInstall(); setMobileMenuOpen(false); }}
+            className="w-full text-left py-2.5 px-3 text-sm font-bold text-slate-950 bg-emerald-400 hover:bg-emerald-300 rounded flex items-center justify-between"
+          >
+            <span>Install as Phone App (অ্যাপ ইনস্টল করুন)</span>
+            <Download className="w-4 h-4" />
+          </button>
           <button 
             onClick={() => { onOpenShare(); setMobileMenuOpen(false); }}
             className="w-full text-left py-2 px-3 text-sm font-semibold text-cyan-300 bg-cyan-950/40 border border-cyan-500/30 rounded flex items-center justify-between"

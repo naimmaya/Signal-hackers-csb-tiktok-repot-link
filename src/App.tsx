@@ -15,7 +15,9 @@ import {
   Check,
   Filter,
   RefreshCw,
-  Share2
+  Share2,
+  Download,
+  Smartphone
 } from 'lucide-react';
 import { INITIAL_FOLDERS } from './data/reportData';
 import { ReportFolder, ReportItem } from './types/report';
@@ -27,6 +29,7 @@ import { ReportingGuideModal } from './components/ReportingGuideModal';
 import { HelpLineModal } from './components/HelpLineModal';
 import { HelpLineBanner } from './components/HelpLineBanner';
 import { ShareAppModal } from './components/ShareAppModal';
+import { InstallAppModal } from './components/InstallAppModal';
 import { Toast, ToastMessage } from './components/Toast';
 import { playCopySuccessSound } from './utils/audio';
 
@@ -81,6 +84,7 @@ export default function App() {
   const [isGuideOpen, setIsGuideOpen] = useState(false);
   const [isHelplineOpen, setIsHelplineOpen] = useState(false);
   const [isShareOpen, setIsShareOpen] = useState(false);
+  const [isInstallOpen, setIsInstallOpen] = useState(false);
   const [selectedTemplateForBuilder, setSelectedTemplateForBuilder] = useState<ReportItem | null>(null);
 
   // Toasts
@@ -259,6 +263,7 @@ export default function App() {
         onOpenGuide={() => setIsGuideOpen(true)}
         onOpenHelpline={() => setIsHelplineOpen(true)}
         onOpenShare={() => setIsShareOpen(true)}
+        onOpenInstall={() => setIsInstallOpen(true)}
         onNavigateSection={scrollToSection}
       />
 
@@ -299,16 +304,24 @@ export default function App() {
           </div>
 
           {/* Primary Quick Actions */}
-          <div className="flex items-center justify-center gap-3 pt-3 flex-wrap">
+          <div className="flex items-center justify-center gap-2.5 pt-3 flex-wrap">
+            <button
+              onClick={() => setIsInstallOpen(true)}
+              className="px-4 py-2 text-xs sm:text-sm font-bold text-slate-950 bg-gradient-to-r from-emerald-400 to-teal-300 hover:from-emerald-300 hover:to-teal-200 rounded-lg shadow-lg shadow-emerald-500/20 transition-all flex items-center gap-2 cursor-pointer border border-emerald-300/40"
+            >
+              <Download className="w-4 h-4" />
+              <span>Install Phone App (অ্যাপ হিসেবে নামান)</span>
+            </button>
+
             <button
               onClick={() => {
                 setSelectedTemplateForBuilder(null);
                 setIsBuilderOpen(true);
               }}
-              className="px-4 py-2 text-xs sm:text-sm font-bold text-slate-950 bg-emerald-400 hover:bg-emerald-300 rounded-lg shadow-lg shadow-emerald-500/10 transition-colors flex items-center gap-2 cursor-pointer"
+              className="px-4 py-2 text-xs sm:text-sm font-bold text-white bg-slate-800 hover:bg-slate-700 border border-slate-700 rounded-lg shadow transition-colors flex items-center gap-2 cursor-pointer"
             >
-              <Sparkles className="w-4 h-4" />
-              <span>Generate Custom Text (@Username)</span>
+              <Sparkles className="w-4 h-4 text-emerald-400" />
+              <span>Generate Text (@Username)</span>
             </button>
 
             <button
@@ -316,7 +329,7 @@ export default function App() {
               className="px-4 py-2 text-xs sm:text-sm font-bold text-cyan-300 bg-cyan-950/70 hover:bg-cyan-900/80 border border-cyan-500/50 rounded-lg transition-colors flex items-center gap-2 cursor-pointer shadow-md"
             >
               <Share2 className="w-4 h-4 text-cyan-400" />
-              <span>Share Link (ওয়েবসাইট লিংক শেয়ার)</span>
+              <span>Share Link</span>
             </button>
 
             <button
@@ -324,7 +337,7 @@ export default function App() {
               className="px-4 py-2 text-xs sm:text-sm font-bold text-emerald-300 bg-emerald-950/70 hover:bg-emerald-900/80 border border-emerald-500/50 rounded-lg transition-colors flex items-center gap-2 cursor-pointer shadow-md"
             >
               <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
-              <span>হেল্পলাইন (01679164271 / @Signalhackers)</span>
+              <span>হেল্পলাইন</span>
             </button>
 
             <button
@@ -332,15 +345,7 @@ export default function App() {
               className="px-4 py-2 text-xs sm:text-sm font-semibold text-slate-200 bg-slate-800/90 hover:bg-slate-700 border border-slate-700 rounded-lg transition-colors flex items-center gap-2 cursor-pointer"
             >
               <BookOpen className="w-4 h-4 text-emerald-400" />
-              <span>রিপোর্ট করার নিয়মাবলী (Guide)</span>
-            </button>
-
-            <button
-              onClick={() => setIsNewTemplateOpen(true)}
-              className="px-4 py-2 text-xs sm:text-sm font-semibold text-slate-200 bg-slate-800/90 hover:bg-slate-700 border border-slate-700 rounded-lg transition-colors flex items-center gap-2 cursor-pointer"
-            >
-              <FolderPlus className="w-4 h-4 text-cyan-400" />
-              <span>Add Custom Script</span>
+              <span>Guide</span>
             </button>
           </div>
 
@@ -589,6 +594,15 @@ export default function App() {
           <span className="text-xs font-bold font-mono">HELP LINE</span>
           <span className="hidden sm:inline text-xs text-slate-300">01679164271</span>
         </button>
+
+        <button
+          onClick={() => setIsInstallOpen(true)}
+          className="flex items-center gap-1.5 px-3 py-2 rounded-full bg-emerald-400 hover:bg-emerald-300 text-slate-950 font-bold text-xs shadow-xl shadow-emerald-500/30 transition-all cursor-pointer"
+          title="Install Signal Hackers CSB on your Phone"
+        >
+          <Download className="w-3.5 h-3.5" />
+          <span>App Download</span>
+        </button>
       </div>
 
       {/* Modals */}
@@ -621,6 +635,11 @@ export default function App() {
         isOpen={isShareOpen}
         onClose={() => setIsShareOpen(false)}
         onCopyText={handleCopyText}
+      />
+
+      <InstallAppModal
+        isOpen={isInstallOpen}
+        onClose={() => setIsInstallOpen(false)}
       />
 
       {/* Floating Notifications */}
