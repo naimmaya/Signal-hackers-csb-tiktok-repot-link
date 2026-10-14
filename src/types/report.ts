@@ -10,6 +10,9 @@ export interface ReportItem {
   severity: 'Critical' | 'High' | 'Medium';
   tags: string[];
   isOfficialForm?: boolean;
+  guidelineSection?: string;
+  estimatedReviewTime?: string;
+  directEmail?: string;
 }
 
 export interface ReportFolder {
@@ -32,4 +35,14 @@ export interface CustomUserTemplate {
   additionalText: string;
   banglaInstruction?: string;
   createdAt: string;
+}
+
+export interface TrackedReport {
+  id: string;
+  targetHandle: string;
+  category: string;
+  reportTitle: string;
+  submittedAt: string;
+  status: 'Pending' | 'Under Review' | 'Banned / Action Taken' | 'Closed';
+  notes?: string;
 }

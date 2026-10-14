@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Copy, Check, ExternalLink, Sparkles, Star, ChevronDown, ChevronUp, ShieldAlert, Info } from 'lucide-react';
+import { Copy, Check, ExternalLink, Sparkles, Star, ChevronDown, ChevronUp, ShieldAlert, Info, Mail, Clock, FileText } from 'lucide-react';
 import { ReportItem } from '../types/report';
 
 interface ReportCardProps {
@@ -9,6 +9,8 @@ interface ReportCardProps {
   onCopyText: (text: string, title: string) => void;
   onCopyLink: (link: string, title: string) => void;
   onCustomize: (item: ReportItem) => void;
+  onOpenEmail?: (item: ReportItem) => void;
+  onTrackCase?: (item: ReportItem) => void;
 }
 
 export const ReportCard: React.FC<ReportCardProps> = ({
@@ -18,9 +20,12 @@ export const ReportCard: React.FC<ReportCardProps> = ({
   onCopyText,
   onCopyLink,
   onCustomize,
+  onOpenEmail,
+  onTrackCase,
 }) => {
   const [copiedText, setCopiedText] = useState(false);
   const [copiedLink, setCopiedLink] = useState(false);
+  const [copiedBoth, setCopiedBoth] = useState(false);
   const [showBengaliGuide, setShowBengaliGuide] = useState(false);
 
   const handleCopyText = () => {
@@ -33,6 +38,13 @@ export const ReportCard: React.FC<ReportCardProps> = ({
     onCopyLink(item.officialLink, item.title);
     setCopiedLink(true);
     setTimeout(() => setCopiedLink(false), 2000);
+  };
+
+  const handleCopyBoth = () => {
+    const combined = `[TIKTOK REPORT LINK]\n${item.officialLink}\n\n[ADDITIONAL REASON & LEGAL BASIS]\n${item.additionalText}`;
+    onCopyText(combined, `${item.title} (Both Link + Text Copied)`);
+    setCopiedBoth(true);
+    setTimeout(() => setCopiedBoth(false), 2000);
   };
 
   const getSeverityColor = (sev: 'Critical' | 'High' | 'Medium') => {
@@ -57,16 +69,44 @@ export const ReportCard: React.FC<ReportCardProps> = ({
             <span className={`text-[11px] font-mono px-2 py-0.5 rounded border ${getSeverityColor(item.severity)}`}>
               {item.severity} Priority
             </span>
+            {item.estimatedReviewTime && (
+              <span className="text-[10.5px] font-mono text-emerald-400/80 bg-emerald-950/40 border border-emerald-900/40 px-2 py-0.5 rounded flex items-center gap-1">
+                <Clock className="w-3 h-3 text-emerald-400" />
+                <span>{item.estimatedReviewTime}</span>
+              </span>
+            )}
           </div>
           <p className="text-xs text-emerald-400/90 font-medium">{item.banglaTitle}</p>
         </div>
 
-        {/* Favorite & Quick Customize actions */}
-        <div className="flex items-center gap-2 self-start shrink-0">
+        {/* Action icons bar */}
+        <div className="flex items-center gap-1.5 self-start shrink-0">
+          {onOpenEmail && (
+            <button
+              onClick={() => onOpenEmail(item)}
+              className="flex items-center gap-1 text-xs text-slate-300 hover:text-white bg-slate-800 hover:bg-slate-700 border border-slate-700 px-2.5 py-1 rounded transition-colors cursor-pointer"
+              title="Open Official TikTok Email Composer"
+            >
+              <Mail className="w-3 h-3 text-emerald-400" />
+              <span className="hidden sm:inline">Email Desk</span>
+            </button>
+          )}
+
+          {onTrackCase && (
+            <button
+              onClick={() => onTrackCase(item)}
+              className="flex items-center gap-1 text-xs text-slate-300 hover:text-white bg-slate-800 hover:bg-slate-700 border border-slate-700 px-2.5 py-1 rounded transition-colors cursor-pointer"
+              title="Track this report case in dossier"
+            >
+              <FileText className="w-3 h-3 text-cyan-400" />
+              <span className="hidden sm:inline">Track</span>
+            </button>
+          )}
+
           <button
             onClick={() => onCustomize(item)}
             className="flex items-center gap-1 text-xs text-cyan-400 hover:text-cyan-300 bg-cyan-950/40 hover:bg-cyan-900/50 border border-cyan-800/50 px-2.5 py-1 rounded transition-colors cursor-pointer"
-            title="Add username to this template"
+            title="Add target handle (@username) to this template"
           >
             <Sparkles className="w-3 h-3" />
             <span className="hidden sm:inline">Customize</span>
@@ -139,17 +179,32 @@ export const ReportCard: React.FC<ReportCardProps> = ({
             </span>
           </div>
 
-          <button
-            onClick={handleCopyText}
-            className={`flex items-center gap-1.5 px-3.5 py-1 text-xs font-semibold rounded shadow-sm transition-all cursor-pointer ${
-              copiedText
-                ? 'bg-emerald-500 text-slate-950 font-bold'
-                : 'bg-emerald-600 hover:bg-emerald-500 text-slate-950'
-            }`}
-          >
-            {copiedText ? <Check className="w-3.5 h-3.5" /> : <Copy className="w-3.5 h-3.5" />}
-            <span>{copiedText ? 'Copied Additional Text!' : 'Copy Additional Text'}</span>
-          </button>
+          <div className="flex items-center gap-2">
+            <button
+              onClick={handleCopyBoth}
+              className={`hidden sm:flex items-center gap-1.5 px-2.5 py-1 text-xs font-semibold rounded border transition-all cursor-pointer ${
+                copiedBoth
+                  ? 'bg-cyan-500/20 text-cyan-300 border-cyan-500/50'
+                  : 'bg-slate-800 hover:bg-slate-700 text-slate-300 border-slate-700'
+              }`}
+              title="Copy both Report Link and Additional Text together"
+            >
+              {copiedBoth ? <Check className="w-3.5 h-3.5 text-cyan-400" /> : <Copy className="w-3.5 h-3.5 text-cyan-400" />}
+              <span>{copiedBoth ? 'Copied Both!' : 'Copy Both (Link+Text)'}</span>
+            </button>
+
+            <button
+              onClick={handleCopyText}
+              className={`flex items-center gap-1.5 px-3.5 py-1 text-xs font-semibold rounded shadow-sm transition-all cursor-pointer ${
+                copiedText
+                  ? 'bg-emerald-500 text-slate-950 font-bold'
+                  : 'bg-emerald-600 hover:bg-emerald-500 text-slate-950'
+              }`}
+            >
+              {copiedText ? <Check className="w-3.5 h-3.5" /> : <Copy className="w-3.5 h-3.5" />}
+              <span>{copiedText ? 'Copied Additional Text!' : 'Copy Additional Text'}</span>
+            </button>
+          </div>
         </div>
 
         <div className="relative group">

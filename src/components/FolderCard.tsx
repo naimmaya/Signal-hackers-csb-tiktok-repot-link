@@ -28,6 +28,8 @@ interface FolderCardProps {
   onCopyText: (text: string, title: string) => void;
   onCopyLink: (link: string, title: string) => void;
   onCustomize: (item: ReportItem) => void;
+  onOpenEmail?: (item: ReportItem) => void;
+  onTrackCase?: (item: ReportItem) => void;
 }
 
 const getFolderIcon = (iconName: string, isOpen: boolean) => {
@@ -57,6 +59,8 @@ export const FolderCard: React.FC<FolderCardProps> = ({
   onCopyText,
   onCopyLink,
   onCustomize,
+  onOpenEmail,
+  onTrackCase,
 }) => {
   return (
     <div 
@@ -139,6 +143,8 @@ export const FolderCard: React.FC<FolderCardProps> = ({
                 onCopyText={onCopyText}
                 onCopyLink={onCopyLink}
                 onCustomize={onCustomize}
+                onOpenEmail={onOpenEmail}
+                onTrackCase={onTrackCase}
               />
             ))}
           </div>

@@ -17,10 +17,20 @@ import {
   RefreshCw,
   Share2,
   Download,
-  Smartphone
+  Smartphone,
+  FileText,
+  Mail,
+  CheckSquare,
+  Volume2,
+  VolumeX,
+  ArrowUp,
+  Activity,
+  Shield,
+  PhoneCall,
+  Clock
 } from 'lucide-react';
 import { INITIAL_FOLDERS } from './data/reportData';
-import { ReportFolder, ReportItem } from './types/report';
+import { ReportFolder, ReportItem, TrackedReport } from './types/report';
 import { Header } from './components/Header';
 import { FolderCard } from './components/FolderCard';
 import { CustomBuilderModal } from './components/CustomBuilderModal';
@@ -30,11 +40,16 @@ import { HelpLineModal } from './components/HelpLineModal';
 import { HelpLineBanner } from './components/HelpLineBanner';
 import { ShareAppModal } from './components/ShareAppModal';
 import { InstallAppModal } from './components/InstallAppModal';
+import { ReportTrackerModal } from './components/ReportTrackerModal';
+import { EmailDispatcherModal } from './components/EmailDispatcherModal';
+import { EvidenceChecklistModal } from './components/EvidenceChecklistModal';
 import { Toast, ToastMessage } from './components/Toast';
 import { playCopySuccessSound } from './utils/audio';
 
 const STORAGE_KEY_FAVORITES = 'signal_hackers_favorites_v1';
 const STORAGE_KEY_CUSTOM = 'signal_hackers_custom_templates_v1';
+const STORAGE_KEY_TRACKED = 'signal_hackers_tracked_reports_v1';
+const STORAGE_KEY_SOUND = 'signal_hackers_sound_v1';
 
 export default function App() {
   const [folders, setFolders] = useState<ReportFolder[]>(() => {
@@ -74,6 +89,23 @@ export default function App() {
     }
   });
 
+  const [trackedReports, setTrackedReports] = useState<TrackedReport[]>(() => {
+    try {
+      const saved = localStorage.getItem(STORAGE_KEY_TRACKED);
+      return saved ? JSON.parse(saved) : [];
+    } catch {
+      return [];
+    }
+  });
+
+  const [soundEnabled, setSoundEnabled] = useState<boolean>(() => {
+    try {
+      return localStorage.getItem(STORAGE_KEY_SOUND) !== 'false';
+    } catch {
+      return true;
+    }
+  });
+
   const [searchQuery, setSearchQuery] = useState('');
   const [activeCategoryFilter, setActiveCategoryFilter] = useState<string>('all');
   const [onlyFavorites, setOnlyFavorites] = useState(false);
@@ -85,7 +117,13 @@ export default function App() {
   const [isHelplineOpen, setIsHelplineOpen] = useState(false);
   const [isShareOpen, setIsShareOpen] = useState(false);
   const [isInstallOpen, setIsInstallOpen] = useState(false);
+  const [isTrackerOpen, setIsTrackerOpen] = useState(false);
+  const [isEmailOpen, setIsEmailOpen] = useState(false);
+  const [isChecklistOpen, setIsChecklistOpen] = useState(false);
+
   const [selectedTemplateForBuilder, setSelectedTemplateForBuilder] = useState<ReportItem | null>(null);
+  const [selectedTemplateForTracker, setSelectedTemplateForTracker] = useState<ReportItem | null>(null);
+  const [selectedTemplateForEmail, setSelectedTemplateForEmail] = useState<ReportItem | null>(null);
 
   // Toasts
   const [toasts, setToasts] = useState<ToastMessage[]>([]);
@@ -99,6 +137,24 @@ export default function App() {
     }
   }, [favorites]);
 
+  // Persist tracked reports
+  useEffect(() => {
+    try {
+      localStorage.setItem(STORAGE_KEY_TRACKED, JSON.stringify(trackedReports));
+    } catch {
+      // ignore
+    }
+  }, [trackedReports]);
+
+  // Persist sound preference
+  useEffect(() => {
+    try {
+      localStorage.setItem(STORAGE_KEY_SOUND, soundEnabled ? 'true' : 'false');
+    } catch {
+      // ignore
+    }
+  }, [soundEnabled]);
+
   const addToast = (title: string, description: string, type: 'link' | 'text' | 'success') => {
     const newToast: ToastMessage = {
       id: `${Date.now()}-${Math.random()}`,
@@ -107,7 +163,7 @@ export default function App() {
       type,
     };
     setToasts((prev) => [...prev, newToast]);
-    playCopySuccessSound();
+    playCopySuccessSound(soundEnabled);
   };
 
   const dismissToast = (id: string) => {
@@ -188,6 +244,16 @@ export default function App() {
     setIsBuilderOpen(true);
   };
 
+  const handleTrackCase = (item: ReportItem) => {
+    setSelectedTemplateForTracker(item);
+    setIsTrackerOpen(true);
+  };
+
+  const handleOpenEmail = (item: ReportItem) => {
+    setSelectedTemplateForEmail(item);
+    setIsEmailOpen(true);
+  };
+
   // Filtered folders and items
   const filteredFolders = useMemo(() => {
     const q = searchQuery.toLowerCase().trim();
@@ -250,6 +316,10 @@ export default function App() {
     }
   };
 
+  const scrollToTop = () => {
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  };
+
   return (
     <div className="min-h-screen bg-[#090d16] text-slate-100 flex flex-col font-sans selection:bg-emerald-500/30 selection:text-emerald-200">
       
@@ -264,8 +334,76 @@ export default function App() {
         onOpenHelpline={() => setIsHelplineOpen(true)}
         onOpenShare={() => setIsShareOpen(true)}
         onOpenInstall={() => setIsInstallOpen(true)}
+        onOpenTracker={() => {
+          setSelectedTemplateForTracker(null);
+          setIsTrackerOpen(true);
+        }}
+        onOpenEmail={() => {
+          setSelectedTemplateForEmail(null);
+          setIsEmailOpen(true);
+        }}
+        onOpenChecklist={() => setIsChecklistOpen(true)}
         onNavigateSection={scrollToSection}
       />
+
+      {/* High-Tech Cyber HUD Status Bar */}
+      <div className="bg-[#050811] border-b border-slate-800/80 px-4 sm:px-6 lg:px-8 py-2 text-[11px] font-mono text-slate-400">
+        <div className="max-w-7xl mx-auto flex flex-wrap items-center justify-between gap-3">
+          
+          <div className="flex items-center gap-3">
+            <div className="flex items-center gap-1.5 text-emerald-400">
+              <span className="relative flex h-2 w-2">
+                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
+                <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
+              </span>
+              <span className="font-bold tracking-wider">SYSTEM ACTIVE</span>
+            </div>
+            <span className="text-slate-700">|</span>
+            <span className="hidden sm:inline text-slate-300">TikTok Policy Engine: v2026.4 Verified</span>
+            <span className="hidden md:inline text-slate-700">|</span>
+            <span className="hidden md:inline text-slate-400">Enforcement Speed: Instant / Priority Dispatch</span>
+          </div>
+
+          <div className="flex items-center gap-3">
+            <button
+              onClick={() => {
+                setSelectedTemplateForTracker(null);
+                setIsTrackerOpen(true);
+              }}
+              className="text-cyan-400 hover:text-cyan-300 flex items-center gap-1 transition-colors cursor-pointer"
+            >
+              <FileText className="w-3 h-3" />
+              <span>Tracked Cases: <b className="text-white">{trackedReports.length}</b></span>
+            </button>
+
+            <span className="text-slate-700">|</span>
+
+            {/* Sound Effects Toggle */}
+            <button
+              onClick={() => {
+                const nextVal = !soundEnabled;
+                setSoundEnabled(nextVal);
+                if (nextVal) playCopySuccessSound(true);
+              }}
+              className="flex items-center gap-1 text-slate-400 hover:text-emerald-400 transition-colors cursor-pointer"
+              title={soundEnabled ? 'Chime sound is enabled (Click to mute)' : 'Chime sound is muted (Click to enable)'}
+            >
+              {soundEnabled ? (
+                <>
+                  <Volume2 className="w-3 h-3 text-emerald-400" />
+                  <span className="hidden sm:inline">Chime: ON</span>
+                </>
+              ) : (
+                <>
+                  <VolumeX className="w-3 h-3 text-slate-500" />
+                  <span className="hidden sm:inline">Chime: MUTE</span>
+                </>
+              )}
+            </button>
+          </div>
+
+        </div>
+      </div>
 
       {/* Hero Header Section */}
       <section className="relative border-b border-slate-800 bg-gradient-to-b from-[#0e1626] to-[#090d16] px-4 sm:px-6 lg:px-8 pt-8 pb-10">
@@ -301,10 +439,81 @@ export default function App() {
               <span className="text-emerald-400 font-bold text-sm sm:text-base mr-1.5">{favorites.length}</span>
               <span>Saved Starred</span>
             </div>
+            <span className="text-slate-700">·</span>
+            <div>
+              <span className="text-cyan-400 font-bold text-sm sm:text-base mr-1.5">{trackedReports.length}</span>
+              <span>Logged Dossiers</span>
+            </div>
           </div>
 
-          {/* Primary Quick Actions */}
-          <div className="flex items-center justify-center gap-2.5 pt-3 flex-wrap">
+          {/* Comprehensive Professional Suite Ribbon */}
+          <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 pt-4 max-w-4xl mx-auto text-left">
+            
+            <button
+              onClick={() => {
+                setSelectedTemplateForBuilder(null);
+                setIsBuilderOpen(true);
+              }}
+              className="p-3 rounded-lg bg-slate-900/90 hover:bg-slate-800 border border-slate-700/80 hover:border-emerald-500/50 transition-all flex items-start gap-2.5 cursor-pointer group shadow"
+            >
+              <div className="p-1.5 rounded bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 group-hover:bg-emerald-500/20">
+                <Sparkles className="w-4 h-4" />
+              </div>
+              <div className="min-w-0">
+                <span className="text-xs font-bold text-slate-100 block group-hover:text-emerald-400">Auto Generator</span>
+                <span className="text-[10.5px] text-slate-400 truncate block">কাস্টম ইউজারনেম বসিয়ে তৈরি</span>
+              </div>
+            </button>
+
+            <button
+              onClick={() => {
+                setSelectedTemplateForTracker(null);
+                setIsTrackerOpen(true);
+              }}
+              className="p-3 rounded-lg bg-slate-900/90 hover:bg-slate-800 border border-slate-700/80 hover:border-cyan-500/50 transition-all flex items-start gap-2.5 cursor-pointer group shadow"
+            >
+              <div className="p-1.5 rounded bg-cyan-500/10 border border-cyan-500/20 text-cyan-400 group-hover:bg-cyan-500/20">
+                <FileText className="w-4 h-4" />
+              </div>
+              <div className="min-w-0">
+                <span className="text-xs font-bold text-slate-100 block group-hover:text-cyan-400">Incident Tracker</span>
+                <span className="text-[10.5px] text-slate-400 truncate block">রিপোর্ট হিস্ট্রি ও স্ট্যাটাস লগ</span>
+              </div>
+            </button>
+
+            <button
+              onClick={() => {
+                setSelectedTemplateForEmail(null);
+                setIsEmailOpen(true);
+              }}
+              className="p-3 rounded-lg bg-slate-900/90 hover:bg-slate-800 border border-slate-700/80 hover:border-emerald-500/50 transition-all flex items-start gap-2.5 cursor-pointer group shadow"
+            >
+              <div className="p-1.5 rounded bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 group-hover:bg-emerald-500/20">
+                <Mail className="w-4 h-4" />
+              </div>
+              <div className="min-w-0">
+                <span className="text-xs font-bold text-slate-100 block group-hover:text-emerald-400">Official Email Desk</span>
+                <span className="text-[10.5px] text-slate-400 truncate block">সরাসরি মেইল এস্কেলেশন</span>
+              </div>
+            </button>
+
+            <button
+              onClick={() => setIsChecklistOpen(true)}
+              className="p-3 rounded-lg bg-slate-900/90 hover:bg-slate-800 border border-slate-700/80 hover:border-amber-500/50 transition-all flex items-start gap-2.5 cursor-pointer group shadow"
+            >
+              <div className="p-1.5 rounded bg-amber-500/10 border border-amber-500/20 text-amber-400 group-hover:bg-amber-500/20">
+                <CheckSquare className="w-4 h-4" />
+              </div>
+              <div className="min-w-0">
+                <span className="text-xs font-bold text-slate-100 block group-hover:text-amber-400">Evidence Audit</span>
+                <span className="text-[10.5px] text-slate-400 truncate block">রিপোর্টের আগের চেকলিস্ট</span>
+              </div>
+            </button>
+
+          </div>
+
+          {/* Quick Action Buttons */}
+          <div className="flex items-center justify-center gap-2.5 pt-2 flex-wrap">
             <button
               onClick={() => setIsInstallOpen(true)}
               className="px-4 py-2 text-xs sm:text-sm font-bold text-slate-950 bg-gradient-to-r from-emerald-400 to-teal-300 hover:from-emerald-300 hover:to-teal-200 rounded-lg shadow-lg shadow-emerald-500/20 transition-all flex items-center gap-2 cursor-pointer border border-emerald-300/40"
@@ -314,14 +523,11 @@ export default function App() {
             </button>
 
             <button
-              onClick={() => {
-                setSelectedTemplateForBuilder(null);
-                setIsBuilderOpen(true);
-              }}
-              className="px-4 py-2 text-xs sm:text-sm font-bold text-white bg-slate-800 hover:bg-slate-700 border border-slate-700 rounded-lg shadow transition-colors flex items-center gap-2 cursor-pointer"
+              onClick={() => setIsHelplineOpen(true)}
+              className="px-4 py-2 text-xs sm:text-sm font-bold text-emerald-300 bg-emerald-950/70 hover:bg-emerald-900/80 border border-emerald-500/50 rounded-lg transition-colors flex items-center gap-2 cursor-pointer shadow-md"
             >
-              <Sparkles className="w-4 h-4 text-emerald-400" />
-              <span>Generate Text (@Username)</span>
+              <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
+              <span>হেল্পলাইন (01679164271)</span>
             </button>
 
             <button
@@ -333,19 +539,11 @@ export default function App() {
             </button>
 
             <button
-              onClick={() => setIsHelplineOpen(true)}
-              className="px-4 py-2 text-xs sm:text-sm font-bold text-emerald-300 bg-emerald-950/70 hover:bg-emerald-900/80 border border-emerald-500/50 rounded-lg transition-colors flex items-center gap-2 cursor-pointer shadow-md"
-            >
-              <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
-              <span>হেল্পলাইন</span>
-            </button>
-
-            <button
               onClick={() => setIsGuideOpen(true)}
               className="px-4 py-2 text-xs sm:text-sm font-semibold text-slate-200 bg-slate-800/90 hover:bg-slate-700 border border-slate-700 rounded-lg transition-colors flex items-center gap-2 cursor-pointer"
             >
               <BookOpen className="w-4 h-4 text-emerald-400" />
-              <span>Guide</span>
+              <span>Guide (নিয়মাবলী)</span>
             </button>
           </div>
 
@@ -483,6 +681,8 @@ export default function App() {
                 onCopyText={handleCopyText}
                 onCopyLink={handleCopyLink}
                 onCustomize={handleCustomize}
+                onOpenEmail={handleOpenEmail}
+                onTrackCase={handleTrackCase}
               />
             ))}
           </div>
@@ -540,7 +740,7 @@ export default function App() {
               </p>
             </div>
 
-            <div className="flex items-center gap-4 text-xs font-medium">
+            <div className="flex items-center gap-4 text-xs font-medium flex-wrap justify-center">
               <a
                 href="https://www.tiktok.com/community-guidelines"
                 target="_blank"
@@ -550,6 +750,33 @@ export default function App() {
                 <span>Community Guidelines</span>
                 <ExternalLink className="w-3 h-3" />
               </a>
+
+              <button
+                onClick={() => {
+                  setSelectedTemplateForTracker(null);
+                  setIsTrackerOpen(true);
+                }}
+                className="text-cyan-400 hover:text-cyan-300 transition-colors cursor-pointer"
+              >
+                Incident Tracker
+              </button>
+
+              <button
+                onClick={() => {
+                  setSelectedTemplateForEmail(null);
+                  setIsEmailOpen(true);
+                }}
+                className="text-slate-400 hover:text-emerald-400 transition-colors cursor-pointer"
+              >
+                Email Desk
+              </button>
+
+              <button
+                onClick={() => setIsChecklistOpen(true)}
+                className="text-amber-400 hover:text-amber-300 transition-colors cursor-pointer"
+              >
+                Evidence Checklist
+              </button>
 
               <button
                 onClick={() => setIsGuideOpen(true)}
@@ -564,24 +791,14 @@ export default function App() {
               >
                 Help Line
               </button>
-
-              <button
-                onClick={() => {
-                  setSelectedTemplateForBuilder(null);
-                  setIsBuilderOpen(true);
-                }}
-                className="text-slate-400 hover:text-emerald-400 transition-colors cursor-pointer"
-              >
-                Text Generator
-              </button>
             </div>
           </div>
 
         </div>
       </footer>
 
-      {/* Floating Help Line Pill Button (Bottom Left) */}
-      <div className="fixed bottom-4 left-4 z-40">
+      {/* Floating Bottom Navigation Hub */}
+      <div className="fixed bottom-4 left-4 z-40 flex items-center gap-2">
         <button
           onClick={() => setIsHelplineOpen(true)}
           className="flex items-center gap-2 px-3.5 py-2 rounded-full bg-slate-900/95 hover:bg-slate-800 border border-emerald-500/50 text-emerald-300 hover:text-white shadow-xl shadow-black/80 backdrop-blur-md transition-all group cursor-pointer"
@@ -595,17 +812,47 @@ export default function App() {
           <span className="hidden sm:inline text-xs text-slate-300">01679164271</span>
         </button>
 
+        <a
+          href="https://wa.me/8801679164271?text=Hello%20Signal%20Hackers%20CSB"
+          target="_blank"
+          rel="noopener noreferrer"
+          className="hidden sm:flex items-center gap-1.5 px-3 py-2 rounded-full bg-emerald-500/20 hover:bg-emerald-500/30 border border-emerald-500/40 text-emerald-300 text-xs font-mono shadow-lg transition-all"
+          title="Direct WhatsApp Chat"
+        >
+          <span>WA</span>
+        </a>
+
+        <a
+          href="https://t.me/Signalhackers"
+          target="_blank"
+          rel="noopener noreferrer"
+          className="hidden sm:flex items-center gap-1.5 px-3 py-2 rounded-full bg-sky-500/20 hover:bg-sky-500/30 border border-sky-500/40 text-sky-300 text-xs font-mono shadow-lg transition-all"
+          title="Direct Telegram Chat"
+        >
+          <span>TG</span>
+        </a>
+      </div>
+
+      <div className="fixed bottom-4 right-4 z-40 flex items-center gap-2">
         <button
           onClick={() => setIsInstallOpen(true)}
-          className="flex items-center gap-1.5 px-3 py-2 rounded-full bg-emerald-400 hover:bg-emerald-300 text-slate-950 font-bold text-xs shadow-xl shadow-emerald-500/30 transition-all cursor-pointer"
+          className="flex items-center gap-1.5 px-3.5 py-2 rounded-full bg-emerald-400 hover:bg-emerald-300 text-slate-950 font-bold text-xs shadow-xl shadow-emerald-500/30 transition-all cursor-pointer"
           title="Install Signal Hackers CSB on your Phone"
         >
           <Download className="w-3.5 h-3.5" />
           <span>App Download</span>
         </button>
+
+        <button
+          onClick={scrollToTop}
+          className="p-2 rounded-full bg-slate-900/90 hover:bg-slate-800 border border-slate-700 text-slate-300 hover:text-white shadow-xl backdrop-blur transition-all cursor-pointer"
+          title="Scroll to Top"
+        >
+          <ArrowUp className="w-4 h-4" />
+        </button>
       </div>
 
-      {/* Modals */}
+      {/* Modals Suite */}
       <CustomBuilderModal
         isOpen={isBuilderOpen}
         onClose={() => setIsBuilderOpen(false)}
@@ -640,6 +887,26 @@ export default function App() {
       <InstallAppModal
         isOpen={isInstallOpen}
         onClose={() => setIsInstallOpen(false)}
+      />
+
+      <ReportTrackerModal
+        isOpen={isTrackerOpen}
+        onClose={() => setIsTrackerOpen(false)}
+        trackedReports={trackedReports}
+        onUpdateReports={setTrackedReports}
+        initialTemplate={selectedTemplateForTracker}
+      />
+
+      <EmailDispatcherModal
+        isOpen={isEmailOpen}
+        onClose={() => setIsEmailOpen(false)}
+        onCopyText={handleCopyText}
+        initialItem={selectedTemplateForEmail}
+      />
+
+      <EvidenceChecklistModal
+        isOpen={isChecklistOpen}
+        onClose={() => setIsChecklistOpen(false)}
       />
 
       {/* Floating Notifications */}

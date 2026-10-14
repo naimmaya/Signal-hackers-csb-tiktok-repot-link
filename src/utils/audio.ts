@@ -1,10 +1,11 @@
-export function playCopySuccessSound() {
+export function playCopySuccessSound(enabled: boolean = true) {
+  if (!enabled) return;
   try {
     const AudioContextClass = window.AudioContext || (window as unknown as { webkitAudioContext: typeof AudioContext }).webkitAudioContext;
     if (!AudioContextClass) return;
     const ctx = new AudioContextClass();
     
-    // Quick pleasant double chime
+    // Quick pleasant high-tech double chime
     const now = ctx.currentTime;
     
     const osc1 = ctx.createOscillator();
