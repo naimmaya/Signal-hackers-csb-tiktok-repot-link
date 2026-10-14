@@ -1,0 +1,6 @@
+{
+  "name": "Signal Hackers CSB - TikTok Report Link & Additional",
+  "description": "Professional toolkit providing all TikTok official report links, policy appeal forms, and structured additional text templates with one-click copy.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
